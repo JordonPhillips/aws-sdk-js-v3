@@ -1,5 +1,7 @@
 # AWS SDK for JavaScript V3 Developer Preview
 
+Test code change to see if it gets picked up during release
+
 [![Build Status](https://travis-ci.org/aws/aws-sdk-js-v3.svg?branch=master)](https://travis-ci.org/aws/aws-sdk-js-v3)
 [![codecov](https://codecov.io/gh/aws/aws-sdk-js-v3/branch/master/graph/badge.svg)](https://codecov.io/gh/aws/aws-sdk-js-v3)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
