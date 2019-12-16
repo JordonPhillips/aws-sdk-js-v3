@@ -15,6 +15,7 @@
 
 package software.amazon.smithy.aws.typescript.codegen;
 
+import static software.amazon.smithy.typescript.codegen.TypeScriptDependency.DEV_DEPENDENCY;
 import static software.amazon.smithy.typescript.codegen.TypeScriptDependency.NORMAL_DEPENDENCY;
 
 import java.util.Collections;
@@ -41,7 +42,10 @@ public enum AwsDependency implements SymbolDependencyContainer {
     MD5_BROWSER(NORMAL_DEPENDENCY, "@aws-sdk/md5-js", "^0.1.0-preview.8"),
     STREAM_HASHER_NODE(NORMAL_DEPENDENCY, "@aws-sdk/hash-stream-node", "^0.1.0-preview.4"),
     STREAM_HASHER_BROWSER(NORMAL_DEPENDENCY, "@aws-sdk/hash-blob-browser", "^0.1.0-preview.4"),
-    BODY_CHECKSUM(NORMAL_DEPENDENCY, "@aws-sdk/middleware-apply-body-checksum", "^0.1.0-preview.5");
+    BODY_CHECKSUM(NORMAL_DEPENDENCY, "@aws-sdk/middleware-apply-body-checksum", "^0.1.0-preview.5"),
+    XML_BUILDER(NORMAL_DEPENDENCY, "@aws-sdk/xml-builder", "^0.1.0-preview.3"),
+    XML_PARSER(NORMAL_DEPENDENCY, "pixl-xml", "^1.0.13"),
+    XML_PARSER_TYPES(DEV_DEPENDENCY, "@types/pixl-xml", "^1.0.1");
 
     public final String packageName;
     public final String version;

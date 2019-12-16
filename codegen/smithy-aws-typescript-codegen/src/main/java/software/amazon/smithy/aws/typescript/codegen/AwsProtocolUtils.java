@@ -15,6 +15,7 @@
 
 package software.amazon.smithy.aws.typescript.codegen;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import software.amazon.smithy.aws.traits.UnsignedPayloadTrait;
@@ -23,6 +24,7 @@ import software.amazon.smithy.model.neighbor.Walker;
 import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeVisitor;
+import software.amazon.smithy.model.traits.XmlNamespaceTrait;
 import software.amazon.smithy.typescript.codegen.TypeScriptWriter;
 import software.amazon.smithy.typescript.codegen.integration.ProtocolGenerator.GenerationContext;
 
@@ -98,5 +100,44 @@ final class AwsProtocolUtils {
         });
 
         writer.write("");
+    }
+
+    /**
+     * Writes a response body parser function for XML protocols. This
+     * will parse a present body after converting it to utf-8.
+     *
+     * @param context The generation context.
+     */
+    static void generateXmlParseBody(GenerationContext context) {
+        TypeScriptWriter writer = context.getWriter();
+
+        // Include an XML body parser used to deserialize documents from HTTP responses.
+        writer.addImport("SerdeContext", "__SerdeContext", "@aws-sdk/types");
+        writer.addDependency(AwsDependency.XML_PARSER);
+        writer.addDependency(AwsDependency.XML_PARSER_TYPES);
+        writer.addImport("parse", "pixlParse", "pixl-xml");
+        writer.openBlock("const parseBody = (streamBody: any, context: __SerdeContext): any => {", "};", () -> {
+            writer.openBlock("return context.streamCollector(streamBody).then((body: any) => {", "});", () -> {
+                writer.write("const encoded = context.utf8Encoder(body);");
+                writer.openBlock("if (encoded.length) {", "}", () -> {
+                    writer.write("return pixlParse(encoded);");
+                });
+                writer.write("return {};");
+            });
+        });
+
+        writer.write("");
+    }
+
+    static void writeXmlNamespace(GenerationContext context, Shape shape, String nodeName) {
+        shape.getTrait(XmlNamespaceTrait.class).ifPresent(trait -> {
+            TypeScriptWriter writer = context.getWriter();
+            String xmlns = "xmlns";
+            Optional<String> prefix = trait.getPrefix();
+            if (prefix.isPresent()) {
+                xmlns += ":" + prefix.get();
+            }
+            writer.write("$L.addAttribute($S, $S);", nodeName, xmlns, trait.getUri());
+        });
     }
 }
