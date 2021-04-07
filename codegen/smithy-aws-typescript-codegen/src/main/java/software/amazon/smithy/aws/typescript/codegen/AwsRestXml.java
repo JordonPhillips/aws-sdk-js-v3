@@ -136,16 +136,19 @@ final class AwsRestXml extends HttpBindingProtocolGenerator {
     }
 
     @Override
-    protected void writeDefaultHeaders(GenerationContext context, OperationShape operation) {
-        super.writeDefaultHeaders(context, operation);
-        AwsProtocolUtils.generateUnsignedPayloadSigV4Header(context, operation);
+    protected void writeDefaultHeaders(GenerationContext context, Shape operationOrError, boolean isInput) {
+        super.writeDefaultHeaders(context, operationOrError, isInput);
+        if (isInput && operationOrError.isOperationShape()) {
+            AwsProtocolUtils.generateUnsignedPayloadSigV4Header(context, operationOrError.asOperationShape().get());
+        }
     }
 
     @Override
-    protected void serializeInputDocument(
+    protected void serializeDocumentBody(
             GenerationContext context,
             OperationShape operation,
-            List<HttpBinding> documentBindings
+            List<HttpBinding> documentBindings,
+            boolean isInput
     ) {
         // Short circuit when we have no bindings.
         TypeScriptWriter writer = context.getWriter();
@@ -193,10 +196,11 @@ final class AwsRestXml extends HttpBindingProtocolGenerator {
     }
 
     @Override
-    protected void serializeInputPayload(
+    protected void serializePayload(
             GenerationContext context,
             OperationShape operation,
-            HttpBinding payloadBinding
+            HttpBinding payloadBinding,
+            boolean isInput
     ) {
         SymbolProvider symbolProvider = context.getSymbolProvider();
         TypeScriptWriter writer = context.getWriter();
@@ -244,10 +248,11 @@ final class AwsRestXml extends HttpBindingProtocolGenerator {
     }
 
     @Override
-    protected void deserializeOutputDocument(
+    protected void deserializeDocumentBody(
             GenerationContext context,
             Shape operationOrError,
-            List<HttpBinding> documentBindings
+            List<HttpBinding> documentBindings,
+            boolean isInput
     ) {
         SymbolProvider symbolProvider = context.getSymbolProvider();
         XmlShapeDeserVisitor shapeVisitor = new XmlShapeDeserVisitor(context);
