@@ -87,8 +87,11 @@ abstract class RestJsonProtocolGenerator extends HttpBindingProtocolGenerator {
     @Override
     protected void writeDefaultHeaders(GenerationContext context, Shape operationOrError, boolean isInput) {
         super.writeDefaultHeaders(context, operationOrError, isInput);
-        if (isInput && operationOrError.isOperationShape()) {
-            AwsProtocolUtils.generateUnsignedPayloadSigV4Header(context, operationOrError.asOperationShape().get());
+        if (operationOrError.isOperationShape()) {
+            OperationShape operation = operationOrError.asOperationShape().get();
+            if (isInput) {
+                AwsProtocolUtils.generateUnsignedPayloadSigV4Header(context, operation);
+            }
         } else if (operationOrError.isStructureShape()) {
             context.getWriter().write("'x-amzn-errortype': $S,", operationOrError.getId().getName());
         }
@@ -104,7 +107,11 @@ abstract class RestJsonProtocolGenerator extends HttpBindingProtocolGenerator {
         // Short circuit when we have no bindings.
         TypeScriptWriter writer = context.getWriter();
         if (documentBindings.isEmpty()) {
-            writer.write("body = \"\";");
+            if (isInput) {
+                writer.write("body = \"\";");
+            } else {
+                writer.write("body = \"{}\";");
+            }
             return;
         }
 
@@ -168,6 +175,19 @@ abstract class RestJsonProtocolGenerator extends HttpBindingProtocolGenerator {
 
     private DocumentMemberSerVisitor getMemberSerVisitor(GenerationContext context, String dataSource) {
         return new JsonMemberSerVisitor(context, dataSource, getDocumentTimestampFormat());
+    }
+
+    @Override
+    protected boolean shouldWriteDefaultBody(GenerationContext context, Shape operationOrError, boolean isInput) {
+        if (!isInput) {
+            // Operations that have any defined output shape should always send a default body.
+            if (operationOrError.isOperationShape()) {
+                OperationShape operation = operationOrError.asOperationShape().get();
+                return operation.getOutput().isPresent();
+            }
+            return true;
+        }
+        return super.shouldWriteDefaultBody(context, operationOrError, isInput);
     }
 
     @Override
